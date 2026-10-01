@@ -1,0 +1,26 @@
+{
+  "id": "frlg_dual_screen",
+  "name": "Gen3DualScreen",
+  "version": "0.4.15",
+  "api": 2,
+  "entry": "main.lua",
+  "category": "UI",
+  "profile": "content",
+  "games": [
+    "gen3"
+  ],
+  "game_version": "0.0.0-dev || >=0.3.20 <2.0.0",
+  "affects_link": false,
+  "dependencies": [],
+  "optional_dependencies": [],
+  "conflicts": [
+    "kanto_gear",
+    "gen1recomp_ds"
+  ],
+  "permissions": [
+    "engine_internals",
+    "network"
+  ],
+  "description": "Gen III companion based on Kanto Gear 3.4.0, with FireRed/LeafGreen mod integration and experimental Emerald support. Emerald requires Gen1recomp 0.3.33 or newer.",
+  "github": "CapnJames95/gen1recomp-gen3dualscreen"
+}
