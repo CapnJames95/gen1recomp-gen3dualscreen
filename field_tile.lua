@@ -5,6 +5,7 @@ local labels={ROCK_SMASH='SMASH',SWEET_SCENT='SCENT'}
 function FieldTile.new(mod,bridge)
  local self=setmetatable({mod=mod,bridge=bridge,cursor=1},FieldTile)
  self.actions=assert(load(mod:read("field_actions.lua"),"@frlg_dual_screen/field_actions.lua"))()
+ self.actions.installFishingText()
  self.FM=require('src.core.game3.field_moves');self.Stack=require('src.ui.game3.stack')
  self.screen={draw=function()self:draw(bridge.theme)end,handleInput=function(input)
   if input:wasPressed('b') then self:close()

@@ -3097,7 +3097,7 @@ return function(mod)
 
   compat.romCodes = {
     red = "RD", blue = "BL", yellow = "YL", gold = "GD", silver = "SV",
-    crystal = "CR", firered = "FR", leafgreen = "LG", emerald = "EM",
+    crystal = "CR", firered = "FR", leafgreen = "LG", emerald = "EM", ruby = "RU", sapphire = "SA",
   }
 
   function compat.systemId(version, release)
@@ -3847,7 +3847,7 @@ return function(mod)
   end
 
   function displayRuntime.sectionName(id, fallback)
-    local section = tostring(id or "OTHER AREA"):gsub("^FR_", ""):gsub("^EM_", ""):gsub("_", " ")
+    local section = tostring(id or "OTHER AREA"):gsub("^FR_", ""):gsub("^EM_", ""):gsub("^RU_", ""):gsub("^SA_", ""):gsub("_", " ")
     local entry = locationEntry(id)
     local name = entry and tostring(entry.name or entry.label or "") or ""
     for word in name:upper():gmatch("[%w]+") do
@@ -5918,7 +5918,7 @@ return function(mod)
   end
 
   function compat.currentRegion()
-    if displayRuntime.gen3 then return displayRuntime.gen3.profile.id == "emerald" and "hoenn" or "kanto" end
+    if displayRuntime.gen3 then return displayRuntime.gen3.profile.family == "rse" and "hoenn" or "kanto" end
     if not compat.isGen2() then return nil end
     local entry = locationEntry(mapId)
     local index = tonumber(entry and entry.index) or 0
@@ -11081,13 +11081,13 @@ return function(mod)
     if not app or not app.target or not package or not package.installed then
       return false
     end
-    if id == "map" and displayRuntime.gen3 and displayRuntime.gen3.session.version == "emerald" then
+    if id == "map" and displayRuntime.gen3 and displayRuntime.gen3.profile.family == "rse" then
       local adapter=displayRuntime.gen3
       local Stack=require("src.ui.game3.stack")
       if Stack.busy() or not displayRuntime.modPanels:fieldIdle() then return false end
-      local flag=require("src.core.game3.constants").of("emerald"):flag("FLAG_SYS_POKENAV_GET")
+      local flag=require("src.core.game3.constants").of(displayRuntime.gen3.session.version):flag("FLAG_SYS_POKENAV_GET")
       if not require("src.core.game3.scripting.flags").getFlag(adapter:flagStore(),nil,flag) then return false end
-      require("src.ui.game3.rse.pokenav.init").show({session=adapter.session,game=displayRuntime.sourceGame})
+      require(adapter.profile.ui.screens.pokenav).show({session=adapter.session,game=displayRuntime.sourceGame})
       page,dirty="HOME",true
       return true
     end
@@ -13418,7 +13418,7 @@ return function(mod)
     game = payload.game
     displayRuntime.sourceGame = game
     displayRuntime.gen3 = nil
-    local navigationLabel=game.session and game.session.version=="emerald" and "POKENAV" or "MAP"
+    local navigationLabel=game.session and require("src.core.game3.profile").forSession(game.session).family=="rse" and "POKENAV" or "MAP"
     displayRuntime.homeCatalog.surfaces.map_app.label=navigationLabel
     displayRuntime.storeById.map.label=navigationLabel
     displayRuntime.gen3Progress = nil

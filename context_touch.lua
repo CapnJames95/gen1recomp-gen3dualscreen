@@ -23,7 +23,7 @@ function Context.install(bridge,context)
     elseif top and top.id=='summary' then
       add('frlg_qol_summary_info','Nature / IV / EV details','select')
       return rows,top,'summary'
-    elseif top and (top.id=='region_map' or top.id=='rse_region_map') then
+    elseif top and (top.id=='region_map' or top.id=='rse_region_map' or (top.id=='rs_pokenav' and require('src.ui.game3.rs.pokenav.init').active().menu=='map')) then
       add('frlg_qol_map_services','Services at this location','select')
       return rows,top,'region_map'
     elseif not top and page=='MAP' and self:fieldIdle() then
@@ -35,7 +35,7 @@ function Context.install(bridge,context)
   function bridge:openContext()
     local rows,top,kind,slot=self:contextRows();if #rows==0 then return end
     local g=self.getGame();local session=g.session
-    if kind=='map' then require(session.version=='emerald' and 'src.ui.game3.rse.region_map' or 'src.ui.game3.region_map').show({session=session});return end
+    if kind=='map' then require(require('src.core.game3.profile').forSession(session).family=='rse' and 'src.ui.game3.rse.region_map' or 'src.ui.game3.region_map').show({session=session});return end
     local createdParty=false
     if not top and kind=='party' then
       local Party=require('src.ui.game3.party_menu')

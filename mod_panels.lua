@@ -90,7 +90,7 @@ end
 -- from both the upper world pass and the companion's tool chrome.
 function Bridge:nativeNavigation(layer)
   layer=layer or self:layer()
-  return layer and (layer.id=='rse_region_map' or layer.id=='rse_pokenav')
+  return layer and (layer.id=='rse_region_map' or layer.id=='rse_pokenav' or layer.id=='rs_pokenav')
 end
 function Bridge:drawNavigation(layer)
   local G=love.graphics
@@ -467,7 +467,7 @@ function Bridge:draw()
     G.pop();return
   end
   H:label('< BACK',5,4,H.colors.blue,46)
-  H:label(self:nativeNavigation(layer) and (layer.id=='rse_pokenav' and 'POKENAV' or 'TOWN MAP') or 'MOD TOOLS',62,4,H.colors.ink,100)
+  H:label(self:nativeNavigation(layer) and ((layer.id=='rse_pokenav' or layer.id=='rs_pokenav') and 'POKENAV' or 'TOWN MAP') or 'MOD TOOLS',62,4,H.colors.ink,100)
   if layer and self:canLive(layer) then H:label(self.live and 'LIVE / PAUSE' or 'PAUSED / LIVE',164,4,H.colors.blue,74) end
   if layer then
     if self:nativeNavigation(layer) then self:drawNavigation(layer) else

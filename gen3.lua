@@ -25,7 +25,7 @@ function Gen3.new(game)
   local Profile = require("src.core.game3.profile")
   self.profile = Profile.forSession and Profile.forSession(game.session)
     or Profile.of(game.session and game.session.version)
-  self.flagDefinitions = self.profile.id == "emerald" and require("src.core.game3.scripting.flags").forVersion("emerald")
+  self.flagDefinitions = self.profile.family == "rse" and require("src.core.game3.scripting.flags").forVersion(self.profile.id)
     or require("src.core.game3.scripting.flags")
   self.Pokemon = require("src.core.game3.pokemon")
   self.Moves = require("src.core.game3.battle.moves")
@@ -85,7 +85,7 @@ function Gen3:refreshDefinitions()
   local source = Compat.dataView(self.game.data or {})
   local P, M, I = self.Pokemon, self.Moves, self.Items
   local dexData = require("src.core.game3.pokedex_data")
-  local hoennEntries = self.profile.id == "emerald" and
+  local hoennEntries = self.profile.family == "rse" and
     assert(require("src.ui.game3.rse.mapsec").readLua("pokemon/pokedex/entries.lua"))
   local data = { pokemon = {}, moves = {}, items = {}, maps = self.game.data and self.game.data.maps or {} }
   -- Iterate National IDs, not the native table length (which includes holes
@@ -96,7 +96,7 @@ function Gen3:refreshDefinitions()
       local row = copy(source.pokemon[id])
       row.index, row.dex, row.national = id, dex, dex
       row.regionalDex = self.Dex.regionalNumber and self.Dex.regionalNumber(id, self.profile.id)
-        or (self.profile.id ~= "emerald" and dex <= 151 and dex or nil)
+        or (self.profile.family ~= "rse" and dex <= 151 and dex or nil)
       local entry = hoennEntries and assert(hoennEntries[id]) or dexData.getEntry(dex)
       row.dexEntry = { kind = entry.category, heightM = (entry.heightDm or entry.height) / 10,
         weightKg = (entry.weightHg or entry.weight) / 10, text = entry.description }
@@ -353,12 +353,12 @@ function Gen3:locations()
   local out = {}
   for id, def in pairs(self.data.maps) do
     local info
-    if self.profile.id == "emerald" then
+    if self.profile.family == "rse" then
       local entry = require("src.ui.game3.rse.mapsec").entry(def.regionMapSectionId)
       info = entry and { resolved = true, rawName = entry.name }
     else info = sections.getInfo(def.regionMapSectionId, id, def.floorNum) end
     out[id] = { name = info and info.resolved and info.rawName
-      or id:gsub("^FR_", ""):gsub("^EM_", ""):gsub("_", " "), section = def.regionMapSectionId }
+      or id:gsub("^FR_", ""):gsub("^EM_", ""):gsub("^RU_", ""):gsub("^SA_", ""):gsub("_", " "), section = def.regionMapSectionId }
     -- Localized names are labels, never progress identity. Keep gyms/dojo
     -- separate from city houses; combine dungeon floors and route segments.
     local facility = id:match("_GYM$") and "GYM" or id:match("_DOJO$") and "DOJO"
@@ -427,6 +427,9 @@ function Gen3:gameView()
             local skin = require("src.ui.game3.rse.summary_menu")
             state.page, state.pages = skin.page(native) + 1, 4
             state.moveDetail = skin.detail(native)
+          elseif self.profile.id=='ruby' or self.profile.id=='sapphire' then
+            state.pages=4
+            state.moveDetail=native._state~='normal' or native._mode==2 or native._mode==3
           end
         end
         state.phase = layer.mod and layer.mod.mode

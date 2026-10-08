@@ -5,8 +5,9 @@ local names = { [0] = "KANTO", "SEVII 1-3", "SEVII 4-5", "SEVII 6-7" }
 local images = { [0] = "kanto_map", "sevii123_map", "sevii45_map", "sevii67_map" }
 
 function Region.new(adapter, graphics)
-  if adapter.profile.id == "emerald" then
+  if adapter.profile.family == "rse" then
     return setmetatable({ adapter = adapter, graphics = graphics,
+      rs = adapter.profile.id == "ruby" or adapter.profile.id == "sapphire",
       Hoenn = require("src.ui.game3.rse.region_map"),
       Kit = require("src.ui.game3.rse.scene_kit") }, Region)
   end
@@ -60,11 +61,16 @@ function Region:hoennModel(area, marker)
   local session = self.adapter.session
   local def = session and self.adapter.data.maps[session.map]
   if not def then return model end
-  local entry = self.Hoenn.manifest().layers.map
+  local manifest=self.rs and require("src.ui.game3.rs.pokenav.gfx").manifest("region_map") or self.Hoenn.manifest()
+  local entry = self.rs and manifest.map or manifest.layers.map
   local img = self.Kit.image(type(entry) == "table" and entry.png or entry)
   if not img then return model end
   -- Use an independent read model; never open or alter the host's map screen.
-  local ok, state = pcall(self.Hoenn.newState, { session = session, mapDef = def })
+  local ok,state
+  if self.rs then
+    ok,state=pcall(require("src.ui.game3.rs.pokenav.data").playerPosition,manifest,session,self.adapter.game)
+    if ok and state then state={showPlayerIcon=true,playerIconX=state.x,playerIconY=state.y}else ok=false end
+  else ok,state=pcall(self.Hoenn.newState,{session=session,mapDef=def})end
   local g = self.graphics
   self.quad = self.quad or g.newQuad(8, 16, 224, 120, img:getDimensions())
   model.drawMap = function(x, y, w, h)

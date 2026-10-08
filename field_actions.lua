@@ -1,5 +1,28 @@
 -- Native field-menu bridge for companion shortcuts.
 local Actions={}
+-- Engine 0.3.57 fishing still requests FR/LG labels on Ruby/Sapphire.
+-- Resolve only the two missing messages from the active game's own cache.
+function Actions.installFishingText()
+ local Text=require('src.core.game3.rom_text')
+ local Mods=require('src.mods.Runtime')
+ local record=Text._dualScreenFishing
+ if not record then
+  record={previous=Text.box}
+  Text._dualScreenFishing=record
+  Text.box=function(key,...)
+   local v=require('src.core.GameVersion').get()
+   local aliases={gText_NotEvenANibble='gOtherText_NotEvenANibble',
+    gText_PokemonOnHook='gOtherText_PokeOnHook'}
+   local target=aliases[key]
+   if record.owner==Mods.events and target and (v=='ruby' or v=='sapphire')
+    and require('src.core.game3.field')._fishing and not Text.has(key) and Text.has(target) then
+    key=target
+   end
+   return record.previous(key,...)
+  end
+ end
+ record.owner=Mods.events
+end
 local function press(menu,key)
  menu.handleInput({wasPressed=function(_,k)return k==key end,isDown=function()return false end})
 end
@@ -33,6 +56,18 @@ function Actions.allowed(id,ctx)
  return result and result.ok==true and result.action=='strength'
 end
 function Actions.execute(session,id,row)
+ if id=='FLY' then
+  local ctx=Actions.context(session)
+  if not ctx or not row.slot or not session.party[row.slot] then return false end
+  ctx.mon=session.party[row.slot]
+  local result=require('src.core.game3.field_moves').fromMenu('FLY',ctx)
+  if not result or not result.ok then return false end
+  local Start=require('src.ui.game3.start_menu')
+  if Start.isOpen() then Start.close(true)end
+  require('src.ui.game3.party_menu')._flyReturn=nil
+  require('src.core.game3.field').executeFieldMove(result)
+  return true
+ end
  if row.item then
   local Bag=require('src.ui.game3.bag_menu')
   Bag.show(session.bag,{session=session,pocket='KEY_ITEMS'});Bag.settle()

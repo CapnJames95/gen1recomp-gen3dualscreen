@@ -118,7 +118,7 @@ function Route.native(mod,getGame)
   end
   return scope=='route' or (not Player.surfing and E.terrainAt(Player.cellX,Player.cellY)=='land'), 'Stand in grass or a cave encounter tile.'
  end
- return Route.new({session=session,map=function()return Map.current or (session() or {}).map end,
+ return Route.new({shinyShortcut=function()local m=mod.find('shiny_hunter');return m and m.exports and type(m.exports.prepareDualScreenEncounter)=='function' end,session=session,map=function()return Map.current or (session() or {}).map end,
   tables=E.tableFor,method=method,name=P.name,
   caught=function(s,id)return Dex.isCaught(s.dex or {},id)end,
   seen=function(s,id)return Dex.isSeen(s.dex or {},id)end,
@@ -145,7 +145,16 @@ function Route.native(mod,getGame)
    for _,mon in ipairs(s.party or {}) do if not P.isEgg(mon) and (mon.hp or 0)>0 then return true end end
    return false,'A healthy party Pokemon is required.'
   end,
-  start=function(enc)return require('src.core.game3.battle_bridge').startWild(Runtime._mod,getGame(),enc,{}) end,
+  start=function(enc)
+   local hunter=mod.find('shiny_hunter')
+   local prepare=hunter and hunter.exports and hunter.exports.prepareDualScreenEncounter
+   if type(prepare)=='function' then
+    local game=getGame();local input=game and game.input
+    local held=input and input.isDown and input:isDown('l') or false
+    enc=prepare(enc,held)
+   end
+   return require('src.core.game3.battle_bridge').startWild(Runtime._mod,getGame(),enc,{})
+  end,
  })
 end
 function Route:draw(H)
@@ -171,7 +180,7 @@ function Route:draw(H)
   end
  end
  if #rows==0 then H:label('No '..self.filter..' encounters in this area.',8,80,H.colors.mutedInk,224) end
- H:label(self.message~='' and self.message or 'Tap a sprite to start a battle.',5,174,H.colors.ink,230)
+ H:label(self.message~='' and self.message or (self.env.shinyShortcut and self.env.shinyShortcut() and 'Tap to encounter; hold L for shiny.' or 'Tap a sprite to start a battle.'),5,174,H.colors.ink,230)
  H:button(4,190,40,22,'<',false)
  H:button(48,190,144,22,'ENCOUNTERS: '..self.filter:upper(),false)
  H:button(196,190,40,22,'>',false)

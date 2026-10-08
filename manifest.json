@@ -1,7 +1,7 @@
 {
   "id": "frlg_dual_screen",
   "name": "Gen3DualScreen",
-  "version": "0.4.15",
+  "version": "0.4.16",
   "api": 2,
   "entry": "main.lua",
   "category": "UI",

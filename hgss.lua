@@ -5218,7 +5218,7 @@ return function(ui)
     box("fill", 15, 14, 70, 3, colors.redLight)
     box("fill", 85, 14, 70, 3, colors.blueLight)
     box("fill", 155, 14, 70, 3, colors.greenLight)
-    self:partyType("E / FR / LG", 15, 22, colors.blue, 210, "center")
+    self:partyType("R / S / E / FR / LG", 15, 22, colors.blue, 210, "center")
 
     self:silphLinkIcon(120, 70, phase)
     fontText(trainerNameFont, "Gen3DualScreen", 28, 109,
