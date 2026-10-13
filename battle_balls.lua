@@ -24,6 +24,14 @@ function Balls.new(mod,bridge)
    if event.phase=='released' then
     local held=self.held[token];self.held[token]=nil
     if held then return true end
+   elseif event.phase=='pressed' and alive() and spec[1]=='input.gamepad'
+    and (key=='y' or key=='x') and game==bridge.getGame() and self:safariReady() then
+    if self.held[token] then return true end
+    self.held[token]=true
+    -- Let the native handler enforce storage capacity and resolve the action.
+    Ui._menuIndex=key=='y' and 1 or 2
+    Ui.handleInput({wasPressed=function(_,button)return button=='a' end})
+    return true
    elseif event.phase=='pressed' and alive() and key==mod.options:get(spec[2]) and key~='off' then
     if self.held[token] then return true end
     if game==bridge.getGame() and (self:valid() or self:open()) then self.held[token]=true;return true end
@@ -40,6 +48,13 @@ function Balls.new(mod,bridge)
   mod.events:on(event,function()self:close();self.held={} end)
  end
  return self
+end
+function Balls:safariReady()
+ local g=self.bridge.getGame();local U=self.Ui;local st=U._st
+ return self.alive() and g and g.session==require('src.core.game3.runtime').getSession()
+  and U._mode=='menu' and not U._headless and not U.isShowing() and not U._pendingCommand
+  and st and st.safari and not(st.link or st.spectate)
+  and not require('src.ui.game3.stack').busy() and not require('src.ui.game3.help_system').isOpen()
 end
 function Balls:ready()
  local g=self.bridge.getGame();local U=self.Ui;local st=U._st

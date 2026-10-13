@@ -1,5 +1,5 @@
 -- Targeted local encounters. Listing is read-only; activation revalidates the
--- current session/map/method, then delegates generation and capture to FRLG.
+-- current session/map/method, then delegates generation and capture to the active game.
 local Route={};Route.__index=Route
 local pools={
  {key='land',label='WALK',weights={20,20,10,10,10,10,5,5,4,4,1,1}},
@@ -118,18 +118,22 @@ function Route.native(mod,getGame)
   end
   return scope=='route' or (not Player.surfing and E.terrainAt(Player.cellX,Player.cellY)=='land'), 'Stand in grass or a cave encounter tile.'
  end
- return Route.new({shinyShortcut=function()local m=mod.find('shiny_hunter');return m and m.exports and type(m.exports.prepareDualScreenEncounter)=='function' end,session=session,map=function()return Map.current or (session() or {}).map end,
+ return Route.new({safariLabel=function() local tool=mod.find('frlg_qol_safari_tools');return tool and tool.exports and tool.exports.counterLabel and tool.exports.counterLabel() end,shinyShortcut=function()local m=mod.find('shiny_hunter');return m and m.exports and type(m.exports.prepareDualScreenEncounter)=='function' end,session=session,map=function()return Map.current or (session() or {}).map end,
   tables=E.tableFor,method=method,name=P.name,
   caught=function(s,id)return Dex.isCaught(s.dex or {},id)end,
   seen=function(s,id)return Dex.isSeen(s.dex or {},id)end,
   random=function(n)return require('src.core.game3.rng').Random()%n end,
   ready=function()
    local g,s=getGame(),session()
-   if not g or g.generation~=3 or g.phase~='field' or not s or Runtime.getSession()~=s then return false,'Load a FireRed or LeafGreen field.' end
+   if not g or g.generation~=3 or g.phase~='field' or not s or Runtime.getSession()~=s then return false,'Load a Gen 3 field.' end
    if g.speedLocked and g:speedLocked() then return false,'Unavailable in linked play.' end
    local Link=package.loaded['src.core.game3.link']
    if Link and Link.inLinkRoom and Link.inLinkRoom() then return false,'Leave the link room first.' end
-   if require('src.core.game3.safari').isActive(s) then return false,'Finish the Safari game first.' end
+   if require('src.core.game3.safari').isActive(s) then
+    local safari=s.safari or {}
+    if (tonumber(safari.balls) or 0)<=0 then return false,'No Safari Balls remain.' end
+    if (tonumber(safari.steps) or 0)<=0 then return false,'The Safari game has ended.' end
+   end
    if require('src.core.game3.battle').isActive() or require('src.core.game3.battle_transition').isActive()
     or require('src.ui.game3.stack').busy() or require('src.ui.game3.message').isOpen()
     or require('src.ui.game3.choice').active or require('src.ui.game3.fade').isActive()
@@ -153,14 +157,22 @@ function Route.native(mod,getGame)
     local held=input and input.isDown and input:isDown('l') or false
     enc=prepare(enc,held)
    end
-   return require('src.core.game3.battle_bridge').startWild(Runtime._mod,getGame(),enc,{})
+   -- Explicitly retain Safari rules, including native Ball/bait/flee controls
+   -- and counter writeback; never turn a Safari encounter into a normal battle.
+   local safari=require('src.core.game3.safari').isActive(session())
+   return require('src.core.game3.battle_bridge').startWild(Runtime._mod,getGame(),enc,{safari=safari or nil})
   end,
  })
 end
 function Route:draw(H)
  local G=love.graphics;local rows=self:visibleRows();self.drawnRows=rows
  local pageCount=math.max(1,math.ceil(#rows/6));self.page=math.min(self.page,pageCount)
- H:label('< HOME',5,4,H.colors.blue,48);H:label('WILD POKEMON',64,4,H.colors.ink,130)
+ H:label('< HOME',5,4,H.colors.blue,48);local title='WILD POKEMON'
+ local session=self.env.session()
+ if session and require('src.core.game3.safari').isActive(session) then
+  local sf=session.safari or {};title=(self.env.safariLabel and self.env.safariLabel()) or ('SAFARI B:'..tostring(sf.balls or 0)..' S:'..tostring(sf.steps or 0))
+ end
+ H:label(title,64,4,H.colors.ink,172)
  H:button(4,23,112,24,'HERE',self.scope=='here');H:button(124,23,112,24,'ROUTE',self.scope=='route')
  local P=require('src.core.game3.pokemon')
  for slot=1,6 do

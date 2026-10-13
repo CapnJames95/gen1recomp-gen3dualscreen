@@ -10561,6 +10561,16 @@ return function(mod)
     function() return displayRuntime.sourceGame end)
   displayRuntime.modPanels.route = assert(load(mod:read("route_encounters.lua"),
     "@frlg_dual_screen/route_encounters.lua"))().native(mod, function() return displayRuntime.sourceGame end)
+  mod.exports.showWildPokemon=function()
+    if not active or not displayReady or not displayRuntime.modPanels:fieldIdle() then return false end
+    require('src.ui.game3.start_menu').close(true)
+    if require('src.ui.game3.stack').busy() then return false end
+    displayRuntime.home.activeApp='encounters'
+    displayRuntime.modPanels.route.open=true
+    displayRuntime.modPanels.qol=false;displayRuntime.modPanels.controls=false
+    page,dirty='HOME',true
+    return true
+  end
   displayRuntime.modPanels.balls = assert(load(mod:read("battle_balls.lua"),
     "@frlg_dual_screen/battle_balls.lua"))().new(mod, displayRuntime.modPanels)
   displayRuntime.fieldTile=assert(load(mod:read("field_tile.lua"),"@frlg_dual_screen/field_tile.lua"))().new(mod,displayRuntime.modPanels)

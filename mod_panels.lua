@@ -1,7 +1,7 @@
 -- Companion ownership for collection editors. Native actions keep their own validation.
 local Bridge = {}
 Bridge.__index = Bridge
-local supported = { ['fly-teleport']=true, legalmon=true, ['event-distributor']=true, autobreeder=true,
+local supported = {frlg_qol_safari_tools=true, ['fly-teleport']=true, legalmon=true, ['event-distributor']=true, autobreeder=true,
   shiny_hunter=true, encounter_tour=true, encounter_reset=true,
   ['daycare-viewer']=true, ['pokemon-services']=true, ['quick-heal-party']=true,
   frlg_dual_touch_actions=true, ['fly-teleport']=true }

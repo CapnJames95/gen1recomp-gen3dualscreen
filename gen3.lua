@@ -505,6 +505,19 @@ function Gen3:battleState()
   view.phase = B._phase == "command" and U and U._mode or B._phase
   view.kind, view.battle = st.kind or (st.wild and "wild" or "trainer"), st
   view.player, view.enemy = st.player, st.enemy
+  -- Native Gen 3 calls the trainer's full roster foeParty. Expose the
+  -- companion contract explicitly so it does not fall back to one active foe.
+  view.enemyParty = view.enemyParty or {}
+  for slot, mon in ipairs(st.foeParty or {}) do
+    local entry = view.enemyParty[slot] or {}
+    entry.hp = mon.hp
+    entry.status = ({ "PSN", "PAR", "SLP", "FRZ", "BRN", "PKRS", "FNT" })[
+      self.Summary.statusAilment(mon)]
+    view.enemyParty[slot] = entry
+  end
+  for slot = #view.enemyParty, #(st.foeParty or {}) + 1, -1 do
+    view.enemyParty[slot] = nil
+  end
   view.tutorial, view.demo = st.oldManTutorial or B._auto, st.pokedude
   view.activeBattler = U and U._active
   view.draining = self.Anim.busy() and (not self.Message.isOpen()

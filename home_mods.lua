@@ -1,6 +1,7 @@
 -- Home shortcuts use the same app tile renderer and the native Start actions.
 local HomeMods={};HomeMods.__index=HomeMods
 local definitions={
+ {id='frlg_qol_safari_tools',label='SAFARI TOOLS',icon='pokedex',accent='green'},
  {id='frlg_qol_hoenn_tools',label='HOENN TOOLS',icon='map',accent='green',export=true},
  {id='fly-teleport',label='TELEPORT',icon='map',accent='blue'},
  {id='quick-heal-party',label='QUICK HEAL',icon='party',accent='green'},
